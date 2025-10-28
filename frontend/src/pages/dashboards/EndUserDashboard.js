@@ -45,16 +45,7 @@ const EndUserDashboard = () => {
         </button>
       </div>
 
-      {showCreateModal && (
-        <Modal onClose={() => setShowCreateModal(false)}>
-          <CreateChecklistForm
-            onCreated={() => {
-              setShowCreateModal(false);
-              loadTemplates();
-            }}
-          />
-        </Modal>
-      )}
+
 
       <div>
         <h2 className="text-xl font-bold mb-4">My Checklists</h2>
@@ -99,6 +90,23 @@ const EndUserDashboard = () => {
       </div>
     </div>
   );
+};
+
+export default EndUserDashboard;xt-white p-2 rounded">
+                  Execute
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No checklists available from admin.</p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default EndUserDashboard;
 };
 
 export default EndUserDashboard;
