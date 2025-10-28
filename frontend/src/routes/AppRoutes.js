@@ -24,7 +24,7 @@ const AppRoutes = () => (
     />
     <Route
       path="/"
-      element={<PrivateRoute roles={["end_user", "app-user", "admin","project_manager","auditor"]}><EndUserDashboard /></PrivateRoute>}
+      element={<PrivateRoute roles={["end_user", "app_user", "admin","project_manager","auditor"]}><EndUserDashboard /></PrivateRoute>}
     />
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes>

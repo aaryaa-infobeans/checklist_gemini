@@ -18,7 +18,7 @@ class IsAuditor(permissions.BasePermission):
 
 class IsEndUser(permissions.BasePermission):
     def has_permission(self, request, view):
-        return bool(request.user and getattr(request.user, 'role', None) and request.user.role.name.lower() in ['app-user', 'end_user', 'user'])
+        return bool(request.user and getattr(request.user, 'role', None) and request.user.role.name.lower() in ['app_user', 'end_user', 'user'])
 
 
 class IsEndUserOrProjectManager(permissions.BasePermission):
@@ -27,7 +27,7 @@ class IsEndUserOrProjectManager(permissions.BasePermission):
         if not request.user or not getattr(request.user, 'role', None):
             return False
         name = request.user.role.name.lower()
-        return name in ['end user', 'end_user', 'user', 'app-user', 'project_manager', 'project_manager'] or name == 'admin'
+        return name in ['end user', 'end_user', 'user', 'app_user', 'project_manager', 'project_manager'] or name == 'admin'
 
 
 class IsOwnerOrProjectManager(permissions.BasePermission):
@@ -49,7 +49,7 @@ class IsExecutionOwnerOrManager(permissions.BasePermission):
         if not request.user or not getattr(request.user, 'role', None):
             return False
         role_name = request.user.role.name.lower()
-        if role_name in ['admin', 'app-user', 'project_manager']:
+        if role_name in ['admin', 'app_user', 'project_manager']:
             return True
         # obj is a ChecklistExecution instance
         return obj.user == request.user
