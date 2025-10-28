@@ -9,7 +9,8 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.views import APIView
 from rest_framework import status
 from django.contrib.auth import get_user_model
-
+from rest_framework.exceptions import PermissionDenied
+from django.db.models import Q
 
 class ObtainTokenByEmail(APIView):
     """Simple email/password -> token endpoint."""
@@ -67,14 +68,31 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
-
 class ChecklistTemplateViewSet(viewsets.ModelViewSet):
     queryset = models.ChecklistTemplate.objects.all()
     serializer_class = serializers.ChecklistTemplateSerializer
-    permission_classes = [drf_permissions.IsAuthenticated, permissions.IsProjectManager]
+    permission_classes = [drf_permissions.IsAuthenticated, permissions.IsManagerOrOwnerOrAppUser]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['category', 'archived']
     search_fields = ['title', 'category']
+
+    def get_queryset(self):
+        """
+        This view should return a list of all the templates
+        for the currently authenticated user.
+        Project managers and admins can see all templates.
+        App users can see their own templates and templates created by admins.
+        """
+        user = self.request.user
+        if user.is_authenticated:
+            if user.role.name.lower() in ['admin', 'project manager', 'project_manager']:
+                return models.ChecklistTemplate.objects.all()
+            elif user.role.name.lower() in ['app_user', 'end_user', 'user']:
+                return models.ChecklistTemplate.objects.filter(
+                    Q(owner=user) | Q(owner__role__name__iexact='admin')
+                )
+        return models.ChecklistTemplate.objects.none()
+
 
     def perform_destroy(self, instance):
         # Prevent deletion if template is in use by executions
@@ -136,6 +154,13 @@ class ChecklistExecutionViewSet(viewsets.ModelViewSet):
         return [drf_permissions.IsAuthenticated(), permissions.IsEndUserOrProjectManager()]
 
     def perform_create(self, serializer):
+        template = serializer.validated_data.get('template')
+        user = self.request.user
+
+        if user.role.name.lower() in ['app_user', 'end_user', 'user']:
+            if template.owner != user and template.owner.role.name.lower() != 'admin':
+                raise PermissionDenied("You can only execute your own checklists or checklists created by an admin.")
+
         exec = serializer.save(user=self.request.user)
         # create item executions from template items
         for item in exec.template.items.all():

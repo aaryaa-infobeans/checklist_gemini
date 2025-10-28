@@ -53,3 +53,38 @@ class IsExecutionOwnerOrManager(permissions.BasePermission):
             return True
         # obj is a ChecklistExecution instance
         return obj.user == request.user
+
+class IsManagerOrOwnerOrAppUser(permissions.BasePermission):
+    """
+    Allow access if user is a project manager/admin, the owner of the object,
+    or an app_user creating a new template.
+    """
+
+    def has_permission(self, request, view):
+        if not request.user or not getattr(request.user, 'role', None):
+            return False
+        
+        # Allow project managers and admins to do anything
+        if request.user.role.name.lower() in ['admin', 'project manager', 'project_manager']:
+            return True
+            
+        # Allow app_users to create templates
+        if request.method == 'POST' and request.user.role.name.lower() in ['app_user', 'end_user', 'user']:
+            return True
+            
+        # For other methods, we need to check object-level permissions
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        if not request.user or not getattr(request.user, 'role', None):
+            return False
+            
+        # Allow project managers and admins to do anything
+        if request.user.role.name.lower() in ['admin', 'project manager', 'project_manager']:
+            return True
+            
+        # Allow app_users to modify their own templates
+        if request.user.role.name.lower() in ['app_user', 'end_user', 'user']:
+            return obj.owner == request.user
+            
+        return False

@@ -59,14 +59,14 @@ const ExecutionListPage = () => {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold">Executions</h1>
+      <h1 className="text-2xl font-bold">Checklists</h1>
       <div className="grid gap-2 mt-4">
         {(executions || []).map(ex => (
           <div key={ex.id} className="p-3 border rounded flex justify-between items-center cursor-pointer" onClick={() => handleOpen(ex.id)}>
             <div>
-              <div className="font-semibold">{ex.title || `Execution ${ex.id}`}</div>
-              <div className="text-sm text-gray-600">Due: {ex.due_date ? new Date(ex.due_date).toLocaleString() : 'No due date'}</div>
-              {isDueSoon(ex.due_date) && <div className="text-sm text-red-600">Due soon</div>}
+              <div className="font-semibold">{ex.title || `${ex.template.title}`}</div>
+              <div className="text-sm text-gray-600">Due: {ex.completed_at ? new Date(ex.completed_at).toLocaleString() : 'No due date'}</div>
+              {isDueSoon(ex.completed_at) && <div className="text-sm text-red-600">Due soon</div>}
             </div>
             {/* <!-- Comment for listing <div className="flex gap-2">
               {ex.status === 'paused' ? (

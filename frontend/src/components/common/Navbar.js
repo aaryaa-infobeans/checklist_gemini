@@ -5,7 +5,7 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   return (
     <nav className="bg-white shadow p-4 flex justify-between">
-      <div className="font-bold">Checklist App</div>
+      <div className="font-bold">Johns Hopkins Hospital</div>
       <div>
         {user ? (
           <div className="flex items-center gap-4">

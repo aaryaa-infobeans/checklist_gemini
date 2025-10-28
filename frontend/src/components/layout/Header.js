@@ -15,7 +15,7 @@ const Header = () => {
     <header className="bg-gray-800 text-white p-4 shadow-md">
       <div className="container mx-auto flex justify-between items-center">
         <Link to="/" className="text-xl font-bold hover:text-gray-300">
-          Checklist App
+          Johns Hopkins Hospital
         </Link>
         <nav>
           {user ? (

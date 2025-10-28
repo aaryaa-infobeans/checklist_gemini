@@ -39,6 +39,7 @@ const ExecutionDetailPage = () => {
       const saved = await api.updateExecution(id, payload);
       setExecution(saved);
       toast.success('Execution saved');
+
     } catch (err) {
       toast.error('Failed to save execution');
     }
@@ -79,11 +80,16 @@ const ExecutionDetailPage = () => {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold">Execution Detail</h1>
+      {/* <h1 className="text-2xl font-bold">Execution Detail</h1> */}
       {execution ? (
         <div>
+          
+          <ChecklistExecutionView
+            template={{ ...execution.template, items: items }}
+            onItemsChange={setItems}
+          />
           <div className="mb-4">Status: <strong>{execution.status}</strong></div>
-          <div className="mb-4">Due: {execution.due_date ? new Date(execution.due_date).toLocaleString() : 'No due date'}</div>
+          <div className="mb-4">Due: {execution.completed_at ? new Date(execution.completed_at).toLocaleString() : 'No due date'}</div>
           <div className="mb-4">
             {/* {execution.status === 'paused' ? (
               <button onClick={handleResume} className="px-3 py-1 bg-green-600 text-white rounded">Resume</button>
@@ -91,12 +97,8 @@ const ExecutionDetailPage = () => {
               <button onClick={handlePause} className="px-3 py-1 bg-yellow-500 text-white rounded">Pause</button>
             )} */}
             <button onClick={handleSave} className="ml-2 px-3 py-1 bg-blue-600 text-white rounded">Save</button>
-            <button onClick={handleComplete} className="ml-2 px-3 py-1 bg-green-600 text-white rounded">Mark as Complete</button>
+            {/* <button onClick={handleComplete} className="ml-2 px-3 py-1 bg-green-600 text-white rounded">Mark as Complete</button> */}
           </div>
-          <ChecklistExecutionView
-            template={{ ...execution.template, items: items }}
-            onItemsChange={setItems}
-          />
         </div>
       ) : <div>No execution found</div>}
     </div>
