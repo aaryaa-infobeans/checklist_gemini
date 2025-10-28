@@ -9,7 +9,7 @@ const ExecutionDetailPage = () => {
   const [execution, setExecution] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [items, setItems] = useState([]); // new state
+  const [items, setItems] = useState([]);
 
   const load = async () => {
     setLoading(true);
@@ -17,10 +17,13 @@ const ExecutionDetailPage = () => {
       const data = await api.fetchExecution(id);
       setExecution(data);
       if (data.template && data.template.items) {
-        const initialItems = data.template.items.map(item => {
-          const executionItem = data.item_executions.find(e => e.item === item.id);
-          return { ...item, completed: executionItem ? executionItem.completed : false };
-        });
+        const executionMap = new Map(
+          data.item_executions?.map(exec => [exec.item.id, exec.status === 'Completed'])
+        );
+        const initialItems = data.template.items.map(item => ({
+          ...item,
+          completed: executionMap.get(item.id) || false,
+        }));
         setItems(initialItems);
       }
     } catch (err) {
@@ -85,7 +88,8 @@ const ExecutionDetailPage = () => {
         <div>
           
           <ChecklistExecutionView
-            template={{ ...execution.template, items: items }}
+            items={items}
+            title={execution.template?.title}
             onItemsChange={setItems}
           />
           <div className="mb-4">Status: <strong>{execution.status}</strong></div>
