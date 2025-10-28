@@ -1,0 +1,128 @@
+{
+  "instructions": "You are an AI Software Development Expert tasked with generating a full-stack, production-ready, multi-role Checklist Management System. Follow these instructions precisely.",
+  "project_overview": {
+    "backend": "Django 4.2, Python 3.10+, Django REST Framework (DRF), SQLite3",
+    "frontend": "ReactJS (Create React App)",
+    "containerization": "Docker + docker-compose (backend, frontend, SQLite3)",
+    "testing": "Unit and integration tests for backend and frontend",
+    "documentation": "API docs, user guides, README.md"
+  },
+  "functional_requirements": {
+    "authentication": [
+      "User registration and login with email/password",
+      "Assign roles (end user, admin, project manager, auditor)",
+      "Role-specific dashboards after login",
+      "Password reset, account lockout, email verification",
+      "Error handling: wrong username or password, duplicate emails",
+    ],
+    "template_management": [
+      "Admins/project managers can create, edit, categorize, version, archive, delete checklist templates",
+      "Support global templates",
+      "Categorization, filtering, archiving, restoration",
+      "Prevent deletion of templates in use; handle duplicate names"
+    ],
+    "checklist_execution": [
+      "End users can import templates and execute them (read-only)",
+      "Mark each item Complete or Incomplete",
+      "One user per checklist execution",
+      "Visualize progress (progress bar/percentage)",
+      "Prevent editing of imported items",
+      "Allow resumption or archiving of abandoned checklists",
+      "Notifications for incomplete tasks/due dates"
+    ],
+    "dashboard_reporting": [
+      "Role-based dashboards with ongoing/completed checklists",
+      "Filter by template, category, date, user",
+      "Visualizations: charts, tables, progress",
+      "Export reports in CSV and PDF",
+      "Archive execution history, audit logs, pagination"
+    ]
+  },
+  "technical_requirements": [
+    "Models, serializers, views, endpoints in Django",
+    "React components, state management, routing",
+    "Unit and integration tests for backend and frontend",
+    "Dockerfile and docker-compose.yml for deployment",
+    "Secure, scalable, maintainable, accessible UX/UI",
+    "Clear, maintainable code with docstrings and comments"
+  ],
+  "deliverables": {
+    "backend": [
+      "Django project + apps",
+      "Models, DRF serializers, viewsets, endpoints",
+      "Authentication & role management",
+      "Checklist template and execution management",
+      "Dashboard API endpoints"
+    ],
+    "backend_tests": [
+      "Unit tests for models, views, serializers",
+      "Integration tests for API endpoints"
+    ],
+    "frontend": [
+      "ReactJS pages and components",
+      "Role-based dashboards",
+      "Template management UI (create, edit, archive, filter)",
+      "Checklist execution UI",
+      "Reporting & visualization"
+    ],
+    "frontend_tests": [
+      "Unit tests for components",
+      "Integration tests for API calls"
+    ],
+    "containerization": [
+      "Dockerfile (multi-stage)",
+      "docker-compose.yml (backend + frontend + SQLite3)",
+      "Production-ready configuration (nginx + gunicorn)"
+    ],
+    "documentation": [
+      "API documentation",
+      "User guide",
+      "README.md with setup, usage, deployment instructions"
+    ]
+  },
+  "execution_plan": [
+    {
+      "step": 1,
+      "title": "Generate Backend Code",
+      "description": "Create the Django project and apps, models, serializers, views, viewsets, and endpoints for user management, roles, checklist templates, checklist execution, and dashboard reporting. Include basic authentication with email and password, role-based permissions, and API endpoints following DRF best practices. Include comments and docstrings."
+    },
+    {
+      "step": 2,
+      "title": "Generate Backend Unit and Integration Tests",
+      "description": "Write unit tests for all models, serializers, views, and permissions. Write integration tests for all API endpoints, including authentication, template CRUD, checklist execution, and dashboard reporting. Ensure coverage is at least 60%. Include comments and docstrings."
+    },
+    {
+      "step": 3,
+      "title": "Generate Frontend Code",
+      "description": "Create a ReactJS frontend with pages, components, and routing for: role-specific dashboards, template management (create, edit, archive, filter), checklist execution, reporting and visualizations. Include state management, API integration with the backend endpoints, accessibility standards. Include comments in code."
+    },
+    {
+      "step": 4,
+      "title": "Generate Frontend Unit and Integration Tests",
+      "description": "Write Jest + React Testing Library unit tests for all React components and integration tests for API calls. Ensure all forms, dashboards, template management UI, and checklist execution functionality are covered. Include test descriptions and setup instructions."
+    },
+    {
+      "step": 5,
+      "title": "Generate Containerization Setup",
+      "description": "Create a production-ready multi-stage Dockerfile for frontend (build) and backend (Django + gunicorn). Configure nginx to serve static files and proxy /api/ endpoints to backend. Write docker-compose.yml to run backend, frontend, and SQLite3 database together. Include environment variable handling for dev, staging, and prod."
+    },
+    {
+      "step": 6,
+      "title": "Generate Documentation",
+      "description": "Produce comprehensive documentation: API docs for backend endpoints, user guide for frontend features, deployment instructions, environment setup, running tests, and Docker usage. Update README.md with setup, usage, and deployment instructions document."
+    },
+    {
+      "step": 7,
+      "title": "Final Review & Validation",
+      "description": "Ensure that all generated backend, frontend, tests, containerization, and documentation are integrated and functional. Check that all unit/integration tests pass, code coverage >= 80%, and frontend communicates with backend APIs correctly. Include audit comments for roles, permissions, and feature completeness."
+    }
+  ],
+  "notes": [
+    "Follow the JSON prompt structure for full context of functional and technical requirements.",
+    "Output each step’s code/files in proper folder structure with all dependencies and comments.",
+    "Ensure backend and frontend are fully integrated.",
+    "Use SQLite3 for dev/test; mention how to replace with Postgres/MySQL for production.",
+    "Include clear instructions for running, testing, and deploying the application."
+  ],
+  "output_format": "Provide complete file contents for each step in the execution order. Include folder structure, filenames, and code. Include all unit and integration tests, Dockerfile, docker-compose.yml, and documentation files."
+}

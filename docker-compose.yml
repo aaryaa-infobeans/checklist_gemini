@@ -1,0 +1,69 @@
+version: "3.9"
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: checklist_backend_bf
+    env_file:
+      - ./env/.env.development
+    volumes:
+      - ./backend:/app:delegated
+      - static_volume:/app/static
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: checklist_frontend_bf
+    ports:
+      - "81:80"
+    volumes:
+      # mount the SPA-aware nginx config so client-side routes (e.g. /login)
+      # are rewritten to index.html. This avoids 404s when navigating directly.
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Optional nginx reverse proxy for production; in development the frontend
+  # container already serves the static build. The nginx service is provided
+  # so you can expose a single entrypoint in prod.
+  nginx:
+    image: nginx:stable-alpine
+    container_name: checklist_nginx_bf
+    depends_on:
+      - frontend
+      - backend
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
+
+  # Production-grade DB service (used when DATABASE_URL points to Postgres).
+  # Keep around for deployments; SQLite is file-based and typically not containerized.
+  db:
+    image: postgres:15-alpine
+    container_name: checklist_db_bf
+    environment:
+      POSTGRES_USER: checklist
+      POSTGRES_PASSWORD: checklist
+      POSTGRES_DB: checklist_db_bf
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  db_data:
+  static_volume:

@@ -1,0 +1,209 @@
+Checklist Management System — Deployment Guide
+===========================================
+
+Purpose
+-------
+This document describes how to deploy the Django backend (DRF) for the Checklist Management System in development and production. It covers environment variables, Docker/Docker Compose steps, recommended production architecture (Postgres + Gunicorn + nginx), CI integration notes, backups, and common troubleshooting steps.
+
+Prerequisites
+-------------
+- Docker and docker-compose installed on the host
+- Python 3.10+ (for local development without containers)
+- For production: a managed Postgres instance (or Postgres container), TLS certificate, and a reverse proxy (nginx)
+
+Environment variables (.env)
+----------------------------
+Create `backend/.env` with at least the following variables (example):
+
+DJANGO_SECRET=change-me-for-prod
+DEBUG=0
+ALLOWED_HOSTS=your.domain.com
+DATABASE_URL=postgres://user:pass@db:5432/checklist_prod
+
+Recommended additional secrets for production:
+- EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD
+- SENTRY_DSN (if using Sentry)
+
+Local development (quick start)
+-------------------------------
+1. Build and run with docker-compose (dev mounts code and exposes port 8000):
+
+```bash
+cd /Users/aarya/Documents/checklist_app
+docker-compose up -d --build backend
+```
+
+2. Apply migrations and create a superuser:
+
+```bash
+docker-compose exec backend python manage.py migrate
+docker-compose exec backend python manage.py createsuperuser
+```
+
+3. Verify health endpoint and API root:
+
+```bash
+curl http://localhost:8000/health/
+# expected: {"status":"ok"}
+```
+
+Production deployment recommendations
+-----------------------------------
+Architecture overview (recommended):
+
+- Reverse proxy: nginx (handles TLS, gzip, static file caching)
+- Application: Gunicorn running multiple workers in a container
+- Database: Postgres (do not use SQLite in production)
+- Persistent volumes: database data, media files, and collected static files
+- Healthchecks and monitoring: Docker healthcheck + Prometheus/Grafana or hosted monitoring
+
+Key production steps
+--------------------
+1) Replace SQLite with Postgres
+
+Update `config/settings.py` to consume `DATABASE_URL` or use environment variables. Example snippet using dj-database-url (recommended to install it):
+
+```python
+import dj_database_url
+DATABASES['default'] = dj_database_url.parse(os.environ.get('DATABASE_URL'))
+```
+
+Or explicit config:
+
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.environ.get('POSTGRES_DB', 'checklist'),
+        'USER': os.environ.get('POSTGRES_USER', 'postgres'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
+        'HOST': os.environ.get('POSTGRES_HOST', 'db'),
+        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+    }
+}
+```
+
+2) Docker Compose (production example)
+
+Below is an example `docker-compose.prod.yml` snippet to run backend + Postgres + nginx:
+
+```yaml
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: checklist
+      POSTGRES_USER: checklist
+      POSTGRES_PASSWORD: verysecret
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    image: your-registry/checklist-backend:latest
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - db
+    volumes:
+      - static_volume:/app/static
+    expose:
+      - 8000
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  nginx:
+    image: nginx:stable-alpine
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - static_volume:/srv/static
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
+  static_volume:
+```
+
+3) Gunicorn and static files
+
+Use Gunicorn to serve the app, and collect static files into a persistent volume before switching nginx to serve them. Typical commands:
+
+```bash
+# Run migrations
+docker-compose exec backend python manage.py migrate --noinput
+
+# Collect static files. This must be run as root because the static_volume is owned by root.
+docker-compose exec -u root backend python manage.py collectstatic --noinput
+```
+
+4) TLS and nginx
+
+Terminate TLS at nginx. Use certbot or a managed certificate. Configure nginx to proxy `/api/` to backend at `http://backend:8000` and serve static files from `/srv/static`.
+
+CI and automated tests
+----------------------
+- A GitHub Actions workflow is included at `.github/workflows/ci.yml`. It:
+  - Installs dependencies
+  - Spins up a Postgres service in CI
+  - Runs migrations and `manage.py test` using `config/ci_settings.py` (created dynamically by the workflow)
+
+- Local equivalent: use the Makefile `make test` target to run tests in a fresh virtualenv.
+
+Healthchecks and monitoring
+---------------------------
+- The app exposes `/health/` which returns 200 and JSON {"status":"ok"}. Docker Compose includes a healthcheck that curls this endpoint.
+- Add Prometheus-compatible metrics (e.g., django-prometheus) for richer monitoring.
+- Configure log aggregation (stdout logs captured by Docker, send to a log aggregator in production).
+
+Backups and migrations
+----------------------
+- Back up Postgres using `pg_dump` or managed DB snapshots.
+- Keep migration history consistent: never edit applied migrations. If you need to reset local DB during development, remove `db.sqlite3` and re-run `migrate` (development-only). For production, use `migrate` normally and follow Django's migration best practices.
+
+Security and secrets
+--------------------
+- Never commit `.env` or secrets to source control.
+- Use a secrets manager (AWS Secrets Manager, Vault, etc.) for production credentials.
+- Ensure `DEBUG=False` in production and `ALLOWED_HOSTS` is set.
+- Use HTTPS in front of nginx; enable HSTS and secure cookies.
+
+Rollback strategy
+-----------------
+- Use database backups before running risky schema migrations.
+- Apply destructive migrations in small steps and test on staging first.
+
+Troubleshooting common issues
+-----------------------------
+- "InconsistentMigrationHistory" when migrating:
+  - This can happen if migration files were added but DB migration state differs. On development machines you can recreate the DB (`rm db.sqlite3`) and re-run `migrate`. On production, consult migration history and apply missing migrations; do not fake migrations without understanding effects.
+
+- 403 on API root in browser:
+  - Default DRF permission is `IsAuthenticated`. Create a superuser or use token/JWT auth to access endpoints.
+
+- Static files 404 under container:
+  - Run `collectstatic` and ensure nginx or container is serving files from the volume where static was collected.
+
+Next steps / Checklist before production
+---------------------------------------
+- Replace SQLite with Postgres and test migrations on staging.
+- Configure nginx with TLS and proper proxy headers.
+- Configure persistent storage for static and media files (S3 or volume).
+- Add logging, monitoring, and alerting.
+- Add load testing and performance benchmarking.
+
+Contacts and references
+-----------------------
+- Project: `/Users/aarya/Documents/checklist_app/backend`
+- Docker Compose file: `/Users/aarya/Documents/checklist_app/docker-compose.yml`
+- Dockerfile: `/Users/aarya/Documents/checklist_app/backend/Dockerfile`
+- CI workflow: `/Users/aarya/Documents/checklist_app/.github/workflows/ci.yml`
+
+End of document.

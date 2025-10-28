@@ -1,0 +1,87 @@
+{
+"instructions": "You are an AI Software Development Expert tasked with generating a Django REST Framework backend for a full-stack Checklist Management System.",
+"project_overview": {
+"framework": "Django 4.2, Python 3.10+, Django REST Framework (DRF), SQLite3",
+"features": "User authentication, role-based permissions, checklist templates, checklist execution, per-item status tracking, dashboards, audit logs"
+},
+"models": [
+{
+"name": "Role",
+"fields": [
+{"name": "name", "type": "CharField", "max_length": 50, "unique": true},
+{"name": "permissions", "type": "JSONField", "null": true, "blank": true}
+],
+"docstring": "Represents a user role with associated permissions."
+},
+{
+"name": "User",
+"fields": [
+{"name": "email", "type": "EmailField", "unique": true},
+{"name": "name", "type": "CharField", "max_length": 100},
+{"name": "role", "type": "ForeignKey", "to": "Role", "on_delete": "SET_NULL", "null": true}
+],
+"docstring": "Represents a system user with an assigned role."
+},
+{
+"name": "ChecklistTemplate",
+"fields": [
+{"name": "title", "type": "CharField", "max_length": 200},
+{"name": "category", "type": "CharField", "max_length": 100},
+{"name": "version", "type": "IntegerField", "default": 1},
+{"name": "archived", "type": "BooleanField", "default": false}
+],
+"docstring": "Represents a checklist template that can be executed by users."
+},
+{
+"name": "ChecklistItem",
+"fields": [
+{"name": "description", "type": "TextField"},
+{"name": "template", "type": "ForeignKey", "to": "ChecklistTemplate", "on_delete": "CASCADE"},
+{"name": "order", "type": "IntegerField", "default": 0}
+],
+"docstring": "Represents an individual item within a checklist template."
+},
+{
+"name": "ChecklistExecution",
+"fields": [
+{"name": "user", "type": "ForeignKey", "to": "User", "on_delete": "CASCADE"},
+{"name": "template", "type": "ForeignKey", "to": "ChecklistTemplate", "on_delete": "CASCADE"},
+{"name": "status", "type": "CharField", "max_length": 20, "choices": ["Pending", "In Progress", "Completed"], "default": "Pending"},
+{"name": "progress", "type": "FloatField", "default": 0.0},
+{"name": "started_at", "type": "DateTimeField", "auto_now_add": true},
+{"name": "completed_at", "type": "DateTimeField", "null": true, "blank": true}
+],
+"docstring": "Tracks the execution of a checklist template by a user. Overall progress is calculated from individual item executions."
+},
+{
+"name": "ChecklistItemExecution",
+"fields": [
+{"name": "execution", "type": "ForeignKey", "to": "ChecklistExecution", "on_delete": "CASCADE", "related_name": "item_executions"},
+{"name": "item", "type": "ForeignKey", "to": "ChecklistItem", "on_delete": "CASCADE"},
+{"name": "status", "type": "CharField", "max_length": 20, "choices": ["Pending", "In Progress", "Completed"], "default": "Pending"},
+{"name": "completed_at", "type": "DateTimeField", "null": true, "blank": true}
+],
+"docstring": "Tracks the execution status of each checklist item within a checklist execution. Allows fine-grained progress tracking per item."
+},
+{
+"name": "AuditLog",
+"fields": [
+{"name": "user", "type": "ForeignKey", "to": "User", "on_delete": "SET_NULL", "null": true},
+{"name": "action", "type": "CharField", "max_length": 255},
+{"name": "timestamp", "type": "DateTimeField", "auto_now_add": true}
+],
+"docstring": "Stores audit logs for actions performed by users."
+}
+],
+"serializers": "Generate DRF serializers for all models, include nested serializers for ChecklistExecution -> ChecklistItemExecution.",
+"viewsets": "Generate DRF ModelViewSets for all models with proper permissions and role-based access. Include filtering by user, template, category, date.",
+"urls": "Generate DRF routers and URL patterns to expose all viewsets. Prefix API endpoints with /api/v1/.",
+"permissions": "Include custom permissions to restrict access by user role: admin, project manager, auditor, end user.",
+"technical": "Include docstrings, initial migrations, admin registration for models, methods to calculate progress on ChecklistExecution, ready for DRF integration.",
+"output_format": "Provide complete file contents for models.py, serializers.py, views.py, urls.py, apps.py, admin.py, and migrations. Include folder structure."
+}
+
+
+========================================
+
+
