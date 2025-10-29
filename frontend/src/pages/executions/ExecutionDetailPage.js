@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import * as api from '../../api/executions';
 import ChecklistExecutionView from '../../components/checklist/ChecklistExecutionView';
 import { toast } from 'react-toastify';
@@ -10,6 +11,7 @@ const ExecutionDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [items, setItems] = useState([]);
+  const navigate = useNavigate();
 
   const load = async () => {
     setLoading(true);
@@ -41,7 +43,15 @@ const ExecutionDetailPage = () => {
       const payload = { ...execution, item_executions };
       const saved = await api.updateExecution(id, payload);
       setExecution(saved);
-      toast.success('Execution saved');
+      //toast.success('Execution saved');
+      // navigate('/');
+      toast.success('Execution saved', {
+        autoClose: 1000, // closes after 1 second
+        onClose: () => navigate('/'),
+      });
+
+      return;
+
 
     } catch (err) {
       toast.error('Failed to save execution');

@@ -62,19 +62,30 @@ const ExecutionListPage = () => {
       <h1 className="text-2xl font-bold">Checklists</h1>
       <div className="grid gap-2 mt-4">
         {(executions || []).map(ex => (
-          <div key={ex.id} className="p-3 border rounded flex justify-between items-center cursor-pointer" onClick={() => handleOpen(ex.id)}>
+          <div key={ex.id} className="p-3 border rounded flex justify-between items-center">
             <div>
               <div className="font-semibold">{ex.title || `${ex.template.title}`}</div>
               <div className="text-sm text-gray-600">Due: {ex.completed_at ? new Date(ex.completed_at).toLocaleString() : 'No due date'}</div>
               {isDueSoon(ex.completed_at) && <div className="text-sm text-red-600">Due soon</div>}
-            </div>
-            {/* <!-- Comment for listing <div className="flex gap-2">
-              {ex.status === 'paused' ? (
-                <button onClick={(e) => handleResume(e, ex)} className="px-2 py-1 bg-green-600 text-white rounded">Resume</button>
+              <div className="text-sm text-gray-600">Status: {ex.status}</div>
+
+              {<div className="text-sm text-gray-600">
+              {ex.status === 'Completed' ? (
+                <span>Completed On: {ex.completed_at ? new Date(ex.completed_at).toLocaleString() : 'Unknown'}</span>
               ) : (
-                <button onClick={(e) => handlePause(e, ex)} className="px-2 py-1 bg-yellow-500 text-white rounded">Pause</button>
+                <span>Assigned On: {ex.started_at ? new Date(ex.started_at).toLocaleString() : 'Unknown'}</span>
               )}
-            </div> --> */}
+            </div>}
+
+              
+            </div>
+            {<div className="flex gap-2">
+              {ex.status === 'Completed' ? (
+                <button className="px-2 py-1 bg-green-600 text-white rounded cursor-not-allowed">{ex.status}</button>
+              ) : (
+                <button onClick={() => handleOpen(ex.id)} className="px-2 py-1 bg-yellow-500 text-white rounded cursor-pointer">{ex.status}</button>
+              )}
+            </div>}
           </div>
         ))}
       </div>
