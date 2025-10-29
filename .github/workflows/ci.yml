@@ -64,7 +64,7 @@ name: Deploy Checklist App
 on:
   push:
     branches:
-      - main
+      - infra-ci-cd-pipeline
 
 jobs:
   deploy:
