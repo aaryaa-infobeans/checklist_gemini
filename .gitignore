@@ -1,0 +1,10 @@
+.venv/
+frontend/__pycache__/
+backend/__pycache__/
+backend/.venv/
+backend/checklist/__pycache__/
+backend/checklist/migrations/__pycache__/
+backend/checklist/migrations/*.pyc
+backend/checklist/migrations/.__pycache__/
+backend/checklist/tests/__pycache__/
+backend/checklist/tests/.venv
