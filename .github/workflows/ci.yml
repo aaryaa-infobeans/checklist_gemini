@@ -94,7 +94,7 @@ jobs:
               git reset --hard
               git pull origin development
             else
-              git clone https://github.com/aaryaa-infobeans/checklist_gemini.git .
+              git clone git@github.com:user/checklist_gemini.git .
               git checkout development
             fi
 
