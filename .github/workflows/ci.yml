@@ -92,10 +92,10 @@ jobs:
             # Clone or update repo
             if [ -d ".git" ]; then
               git reset --hard
-              git pull origin development
+              git pull origin infra-ci-cd-pipeline
             else
               git clone https://github.com/aaryaa-infobeans/checklist_gemini.git .
-              git checkout development
+              git checkout infra-ci-cd-pipeline
             fi
 
             # Build and run containers
