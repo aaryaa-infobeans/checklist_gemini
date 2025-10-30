@@ -6,7 +6,9 @@ services:
       dockerfile: Dockerfile
     container_name: checklist_backend_bf
     env_file:
-      - ./env/.env.development
+      - ./env/.env.production
+    environment:
+      - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
     volumes:
       - ./backend:/app:delegated
       - static_volume:/app/static
@@ -15,7 +17,7 @@ services:
     depends_on:
       - db
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://ec2-3-89-63-141.compute-1.amazonaws.com:8000/health/ || exit 1"]
+      test: ["CMD-SHELL", "curl -f ${REACT_APP_API_BASE_URL}/health/ || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
