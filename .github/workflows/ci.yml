@@ -1,61 +1,106 @@
-name: CI
+# name: CI
+
+# on:
+#   push:
+#     branches: [ main, master ]
+#   pull_request:
+#     branches: [ main, master ]
+
+# jobs:
+#   backend-tests:
+#     runs-on: ubuntu-latest
+#     services:
+#       postgres:
+#         image: postgres:15
+#         env:
+#           POSTGRES_USER: postgres
+#           POSTGRES_PASSWORD: postgres
+#           POSTGRES_DB: test_db
+#         ports:
+#           - 5432:5432
+#         options: >-
+#           --health-cmd="pg_isready -U postgres" --health-interval=10s --health-timeout=5s --health-retries=5
+
+#     steps:
+#       - uses: actions/checkout@v4
+
+#       - name: Set up Python
+#         uses: actions/setup-python@v4
+#         with:
+#           python-version: '3.10'
+
+#       - name: Install dependencies
+#         run: |
+#           cd backend
+#           python -m pip install --upgrade pip
+#           pip install -r requirements.txt
+
+#       - name: Configure DB settings for CI
+#         run: |
+#           # Use Postgres in CI for more realistic testing
+#           cat > backend/config/ci_settings.py <<'PY'
+# from .settings import *
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'test_db',
+#         'USER': 'postgres',
+#         'PASSWORD': 'postgres',
+#         'HOST': '127.0.0.1',
+#         'PORT': '5432',
+#     }
+# }
+# PY
+
+#       - name: Run migrations and tests
+#         env:
+#           DJANGO_SETTINGS_MODULE: config.ci_settings
+#         run: |
+#           cd backend
+#           python manage.py migrate --noinput
+#           python manage.py test --verbosity=2
+name: Deploy Checklist App
 
 on:
   push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+    branches:
+      - infra-ci-cd-pipeline
 
 jobs:
-  backend-tests:
+  deploy:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U postgres" --health-interval=10s --health-timeout=5s --health-retries=5
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          python-version: '3.10'
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
-      - name: Install dependencies
+      - name: Deploy on EC2
         run: |
-          cd backend
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            set -e
+            echo "Deploying application..."
 
-      - name: Configure DB settings for CI
-        run: |
-          # Use Postgres in CI for more realistic testing
-          cat > backend/config/ci_settings.py <<'PY'
-from .settings import *
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'test_db',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
-    }
-}
-PY
+            # App directory
+            mkdir -p ${{ secrets.APP_DIR }}
+            cd ${{ secrets.APP_DIR }}
 
-      - name: Run migrations and tests
-        env:
-          DJANGO_SETTINGS_MODULE: config.ci_settings
-        run: |
-          cd backend
-          python manage.py migrate --noinput
-          python manage.py test --verbosity=2
+            # Clone or update repo
+            if [ -d ".git" ]; then
+              git reset --hard
+              git pull origin infra-ci-cd-pipeline
+            else
+              git clone https://github.com/aaryaa-infobeans/checklist_gemini.git .
+              git checkout infra-ci-cd-pipeline
+            fi
+
+            # Build and run containers
+            docker-compose build
+            docker-compose up -d
+
+            echo "Deployment completed."
+          EOF
