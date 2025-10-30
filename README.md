@@ -1,4 +1,4 @@
-Johns Hopkins Hospital - Dockerized 
+Johns Hopkins Hospital Checklist Application - Dockerized
 
 This repository contains a Django REST backend and a React frontend. This README explains how to build and run the app using Docker Compose for development and production-like environments.
 

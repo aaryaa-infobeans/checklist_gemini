@@ -2,7 +2,10 @@ import React from 'react';
 import ChecklistItem from './ChecklistItem';
 import ProgressBar from '../common/ProgressBar';
 
-const ChecklistExecutionView = ({ items, title, onItemsChange }) => {
+const ChecklistExecutionView = ({ template, items: itemsProp, title, onItemsChange }) => {
+  const items = itemsProp ?? (template?.items ?? []);
+  const heading = title ?? template?.title;
+
   const completed = items.filter(i => i.completed).length;
   const percent = Math.round((completed / (items.length || 1)) * 100 || 0);
 
@@ -15,7 +18,7 @@ const ChecklistExecutionView = ({ items, title, onItemsChange }) => {
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold mb-2">{title}</h2>
+      <h2 className="text-xl font-bold mb-2">{heading}</h2>
       <ProgressBar percent={percent} />
       <div className="mt-4 border rounded">
         {items.map(item => (

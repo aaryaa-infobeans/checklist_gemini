@@ -1,6 +1,10 @@
 from django.contrib import admin
 from . import models
 
+admin.site.site_header = "Johns Hopkins Hospital Admin Portal"
+admin.site.site_title = "Johns Hopkins Hospital Admin | Dashboard"
+admin.site.index_title = "Welcome to the Johns Hopkins Hospital Administration Panel"
+
 
 @admin.register(models.Role)
 class RoleAdmin(admin.ModelAdmin):
