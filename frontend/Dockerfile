@@ -1,5 +1,7 @@
 ### Multi-stage Dockerfile for React (Create React App) served by Nginx
 FROM node:18-alpine AS builder
+ARG REACT_APP_API_BASE_URL
+ENV REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
 WORKDIR /app
 
 # Add a non-root user for safety during build steps
