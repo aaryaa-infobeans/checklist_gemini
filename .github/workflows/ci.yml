@@ -65,6 +65,7 @@ on:
   push:
     branches:
       - infra-ci-cd-pipeline
+      - development
 
 jobs:
   deploy:
