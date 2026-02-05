@@ -105,7 +105,7 @@ REST_FRAMEWORK = {
 
 # CORS settings - allow local frontend on :81 (adjust in production)
 # Allow multiple origins via comma-separated env var or sensible defaults
-CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:81,http://localhost:3000,http://localhost,http://ec2-54-146-254-21.compute-1.amazonaws.com:81,http://ec2-54-146-254-21.compute-1.amazonaws.com:3000,http://ec2-54-146-254-21.compute-1.amazonaws.com').split(',')
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:81,http://localhost:3000,http://localhost,http://ec2-54-226-72-190.compute-1.amazonaws.com:81,http://ec2-54-226-72-190.compute-1.amazonaws.com:3000,http://ec2-54-226-72-190.compute-1.amazonaws.com').split(',')
 # Allow credentials (cookies, Authorization header) to be included from allowed origins
 CORS_ALLOW_CREDENTIALS = True
 # Allow Authorization and other default headers
